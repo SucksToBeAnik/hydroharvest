@@ -6,12 +6,14 @@ from routes import predictions
 from db.config import get_db_connection, init_db
 from db.models import User
 from typing import Annotated
+from ml import train_model
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     print("---app starting---")
     init_db()
+    train_model()
     yield
     print("---app closing---")
 
