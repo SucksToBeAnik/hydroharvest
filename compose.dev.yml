@@ -1,0 +1,50 @@
+name: hydroharvest
+
+services:
+  backend:
+    container_name: hydroharvest-backend-1
+    restart: always
+    ports:
+      - 80:80
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: dev
+    depends_on:
+      - database
+    environment:
+      - DATABASE_URL=postgresql://admin:admin12345@hydroharvest-database-1:5432/hydroharvest
+    networks:
+      - hydroharvest-network
+    volumes:
+      - ${PWD}:/app
+
+  database:
+    container_name: hydroharvest-database-1
+    image: postgres:latest
+    shm_size: 128mb
+    restart: always
+    ports:
+      - 5432:5432
+    networks:
+      - hydroharvest-network
+    volumes:
+      - hydroharvest-storage:/var/lib/postgresql/data
+    environment:
+      - POSTGRES_USER=admin
+      - POSTGRES_PASSWORD=admin12345
+      - POSTGRES_DB=hydroharvest
+  adminer:
+    container_name: hydroharvest-adminer-1
+    image: adminer
+    restart: always
+    ports:
+      - 8080:8080
+    networks:
+      - hydroharvest-network
+
+networks:
+  hydroharvest-network:
+
+volumes:
+  hydroharvest-storage:
