@@ -18,13 +18,15 @@ jobs:
           password: ${{ secrets.PASSWORD }}
           port: 22
           script: |
-            cd ~ || exit
+            cd ~
             if [ ! -d "hydroharvest" ]; then
-            git clone https://github.com/SucksToBeAnik/hydroharvest.git
+              git clone https://github.com/SucksToBeAnik/hydroharvest.git
             fi
-            cd hydroharvest || exit
+            cd hydroharvest
+            git remote remove origin || true  # Ensure no conflicting origin exists
+            git remote add origin https://github.com/SucksToBeAnik/hydroharvest.git
             git fetch origin
-            git reset --hard origin/main
+            git reset --hard origin/main  # Ensure the working directory matches the main branch
             git pull origin main
             export POSTGRES_USER=${{ secrets.POSTGRES_USER }}
             export POSTGRES_PASSWORD=${{ secrets.POSTGRES_PASSWORD }}
