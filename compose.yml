@@ -7,7 +7,7 @@ services:
     ports:
       - 81:81
     build:
-      context: ./backend
+      context: .
       dockerfile: Dockerfile
       target: prod
     depends_on:
