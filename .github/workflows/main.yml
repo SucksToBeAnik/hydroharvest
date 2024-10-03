@@ -23,6 +23,8 @@ jobs:
             git clone https://github.com/SucksToBeAnik/hydroharvest.git
             fi
             cd hydroharvest || exit
+            git fetch origin
+            git reset --hard origin/main
             git pull origin main
             export POSTGRES_USER=${{ secrets.POSTGRES_USER }}
             export POSTGRES_PASSWORD=${{ secrets.POSTGRES_PASSWORD }}
