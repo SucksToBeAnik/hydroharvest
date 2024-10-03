@@ -3,7 +3,10 @@ from fastapi import APIRouter
 from utils import get_buffered_bounding_box
 from ml import predict_precipitation
 
-router = APIRouter()
+router = APIRouter(
+    prefix='/predictions',
+    tags=['Prediction']
+)
 
 # Assuming get_buffered_bounding_box and predict_precipitation are defined elsewhere
 
