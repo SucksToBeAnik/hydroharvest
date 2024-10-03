@@ -19,8 +19,6 @@ async def lifespan(app: FastAPI):
 
 
 app = FastAPI(lifespan=lifespan)
-app.include_router(predictions.router)
-
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -28,6 +26,9 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+app.include_router(predictions.router)
+
 
 
 @app.get("/")
