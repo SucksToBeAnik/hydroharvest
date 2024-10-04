@@ -11,7 +11,7 @@ router = APIRouter(
 # Assuming get_buffered_bounding_box and predict_precipitation are defined elsewhere
 
 
-@router.get("/precipitation")
+@router.post("/precipitation")
 async def get_user_location_precipitation(
     latitude: float, longitude: float, radius: Optional[float] = None
 ):
@@ -45,4 +45,4 @@ async def get_user_location_precipitation(
     )
 
     # Step 4: Return the predicted precipitation (or whatever your function returns)
-    return "hi"
+    return prediction

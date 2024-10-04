@@ -69,7 +69,7 @@ async def get_users(db: Annotated[Session, Depends(get_db_connection)]):
         )
     
 
-@app.get("/precipitation")
+@app.post("/precipitation")
 async def get_user_location_precipitation(
     latitude: float, longitude: float, radius: Optional[float] = None
 ):
