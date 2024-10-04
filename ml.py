@@ -5,6 +5,7 @@ import numpy as np
 from sklearn.ensemble import RandomForestRegressor
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler
+
 # from sklearn.metrics import mean_absolute_error, mean_squared_error, r2_score
 from datetime import datetime
 
@@ -65,24 +66,30 @@ def train_model() -> tuple[RandomForestRegressor, StandardScaler, list[str]]:
     joblib.dump(scaler, "scaler.joblib")
     joblib.dump(feature_columns, "feature_columns.joblib")
 
-    # print("Model, scaler, and feature columns saved.")
-
-    # # Evaluate the model
-    # y_pred_train = model.predict(X_train_scaled)
-    # y_pred_test = model.predict(X_test_scaled)
-
-    # # Calculate accuracy metrics
-    # train_r2 = r2_score(y_train, y_pred_train)
-    # test_r2 = r2_score(y_test, y_pred_test)
-    # test_mae = mean_absolute_error(y_test, y_pred_test)
-    # test_mse = mean_squared_error(y_test, y_pred_test)
-
-    # print(f"Train R2: {train_r2:.4f}")
-    # print(f"Test R2: {test_r2:.4f}")
-    # print(f"Test MAE: {test_mae:.4f}")
-    # print(f"Test MSE: {test_mse:.4f}")
-
     return model, scaler, feature_columns
+
+
+import logging
+
+logger = logging.getLogger(__name__)
+#  Global variables to store loaded model, scaler, and feature columns
+MODEL = None
+SCALER = None
+FEATURE_COLUMNS = None
+
+
+def load_model_and_scaler():
+    global MODEL, SCALER, FEATURE_COLUMNS
+    if MODEL is None or SCALER is None or FEATURE_COLUMNS is None:
+        try:
+            logger.info("Loading model, scaler, and feature columns")
+            MODEL = joblib.load("model.joblib")
+            SCALER = joblib.load("scaler.joblib")
+            FEATURE_COLUMNS = joblib.load("feature_columns.joblib")
+            logger.info("Successfully loaded model, scaler, and feature columns")
+        except Exception as e:
+            logger.error(f"Error loading model, scaler, or feature columns: {str(e)}")
+            raise
 
 
 def predict_precipitation(
@@ -97,45 +104,54 @@ def predict_precipitation(
     month: Optional[int] = None,
     year: Optional[int] = None,
 ) -> PredictionReturnType:
-    # Load the model, scaler, and feature columns
-    model = joblib.load("model.joblib")
-    scaler = joblib.load("scaler.joblib")
-    feature_columns = joblib.load("feature_columns.joblib")
-    day = 1
+    try:
+        logger.info("Starting precipitation prediction")
 
-    current_date = datetime.now()
-    if not month:
-        month = current_date.month
-    if not year:
-        year = current_date.year
+        # Ensure model, scaler, and feature columns are loaded
+        load_model_and_scaler()
 
-    # Prepare input features
-    input_data = pd.DataFrame(
-        [
+        day = 1
+        current_date = datetime.now()
+        month = month or current_date.month
+        year = year or current_date.year
+
+        logger.info(f"Preparing input data for year: {year}, month: {month}")
+
+        # Prepare input features
+        input_data = pd.DataFrame(
             [
-                year,
-                month,
-                day,
-                sw_lon,
-                sw_lat,
-                ne_lon,
-                ne_lat,
-                nw_lon,
-                nw_lat,
-                se_lon,
-                se_lat,
-            ]
-        ],
-        columns=feature_columns,
-    )
-    # Scale the input features
-    input_scaled = pd.DataFrame(scaler.transform(input_data), columns=feature_columns)
+                [
+                    year,
+                    month,
+                    day,
+                    sw_lon,
+                    sw_lat,
+                    ne_lon,
+                    ne_lat,
+                    nw_lon,
+                    nw_lat,
+                    se_lon,
+                    se_lat,
+                ]
+            ],
+            columns=FEATURE_COLUMNS,
+        )
 
-    # Make prediction
-    prediction: float = model.predict(input_scaled)[0]
+        logger.info("Scaling input features")
+        input_scaled = pd.DataFrame(
+            SCALER.transform(input_data), columns=FEATURE_COLUMNS
+        )
 
-    return PredictionReturnType(
-        hourly_rainfall_in_mm=prediction,
-        month=month,
-        year=year,
-    )
+        logger.info("Making prediction")
+        prediction: float = MODEL.predict(input_scaled)[0]
+
+        logger.info(f"Prediction completed. Result: {prediction}")
+
+        return PredictionReturnType(
+            hourly_rainfall_in_mm=prediction,
+            month=month,
+            year=year,
+        )
+    except Exception as e:
+        logger.error(f"Error in predict_precipitation: {str(e)}")
+        raise

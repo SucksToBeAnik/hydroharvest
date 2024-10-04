@@ -1,4 +1,4 @@
-from fastapi import FastAPI, HTTPException, status,Depends
+from fastapi import FastAPI, HTTPException, status, Depends
 from sqlmodel import select, Session
 from contextlib import asynccontextmanager
 from fastapi.middleware.cors import CORSMiddleware
@@ -40,7 +40,6 @@ async def root():
     return "Welcome to the root of HydroHarvest"
 
 
-
 @app.post("/users/{name}")
 async def add_user(name: str, db: Annotated[Session, Depends(get_db_connection)]):
     try:
@@ -70,7 +69,8 @@ async def get_users(db: Annotated[Session, Depends(get_db_connection)]):
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Something went wrong when fetching the users",
         )
-    
+
+
 @app.post("/precipitation")
 async def get_user_location_precipitation(
     latitude: float, longitude: float, radius: Optional[float] = None
@@ -78,7 +78,9 @@ async def get_user_location_precipitation(
     try:
         # Step 1: Get the buffered bounding box coordinates
         radius = radius or 1.0
-        logger.info(f"Calculating bounding box for lat:{latitude}, lon:{longitude}, radius:{radius}")
+        logger.info(
+            f"Calculating bounding box for lat:{latitude}, lon:{longitude}, radius:{radius}"
+        )
 
         coordinates = get_buffered_bounding_box(
             lat=latitude, lon=longitude, buffer_km=radius
@@ -86,26 +88,21 @@ async def get_user_location_precipitation(
 
         logger.info(f"Calculated coordinates: {coordinates}")
 
-        # Step 2: Extract the coordinates from the dictionary
-        ne_lat, ne_lon = coordinates.get("ne_lat"), coordinates.get("ne_lon")
-        nw_lat, nw_lon = coordinates.get("nw_lat"), coordinates.get("nw_lon")
-        sw_lat, sw_lon = coordinates.get("sw_lat"), coordinates.get("sw_lon")
-        se_lat, se_lon = coordinates.get("se_lat"), coordinates.get("se_lon")
-
-        # Step 3: Call the predict_precipitation function with the extracted coordinates
-        logger.info("Calling predict_precipitation function")
+        # Step 2: Call the predict_precipitation function with the extracted coordinates
         prediction = predict_precipitation(
-            ne_lat=ne_lat, ne_lon=ne_lon,
-            nw_lat=nw_lat, nw_lon=nw_lon,
-            sw_lat=sw_lat, sw_lon=sw_lon,
-            se_lat=se_lat, se_lon=se_lon,
+            sw_lon=coordinates["sw_lon"],
+            sw_lat=coordinates["sw_lat"],
+            ne_lon=coordinates["ne_lon"],
+            ne_lat=coordinates["ne_lat"],
+            nw_lon=coordinates["nw_lon"],
+            nw_lat=coordinates["nw_lat"],
+            se_lon=coordinates["se_lon"],
+            se_lat=coordinates["se_lat"],
         )
 
         logger.info(f"Prediction result: {prediction}")
 
-        # Step 4: Return the predicted precipitation
-        return {"prediction": prediction}
-
+        return prediction
     except Exception as e:
         logger.error(f"Error in precipitation prediction: {str(e)}")
         raise HTTPException(status_code=500, detail=f"Internal server error: {str(e)}")
