@@ -8,6 +8,11 @@ from sklearn.preprocessing import StandardScaler
 
 # from sklearn.metrics import mean_absolute_error, mean_squared_error, r2_score
 from datetime import datetime
+import logging
+import os 
+import psutil
+import concurrent.futures
+
 
 
 class PredictionReturnType(TypedDict):
@@ -69,7 +74,9 @@ def train_model() -> tuple[RandomForestRegressor, StandardScaler, list[str]]:
     return model, scaler, feature_columns
 
 
-import logging
+
+
+
 
 logger = logging.getLogger(__name__)
 #  Global variables to store loaded model, scaler, and feature columns
@@ -77,20 +84,59 @@ MODEL = None
 SCALER = None
 FEATURE_COLUMNS = None
 
-
 def load_model_and_scaler():
     global MODEL, SCALER, FEATURE_COLUMNS
     if MODEL is None or SCALER is None or FEATURE_COLUMNS is None:
         try:
-            logger.info("Loading model, scaler, and feature columns")
+            logger.info("Starting to load model, scaler, and feature columns")
+            
+            # Log available memory
+            process = psutil.Process(os.getpid())
+            logger.info(f"Available memory before loading: {psutil.virtual_memory().available / (1024 * 1024):.2f} MB")
+            
+            # Load model
+            logger.info("Loading model.joblib")
             MODEL = joblib.load("model.joblib")
+            logger.info("Model loaded successfully")
+            logger.info(f"Memory usage after loading model: {process.memory_info().rss / (1024 * 1024):.2f} MB")
+            
+            # Load scaler
+            logger.info("Loading scaler.joblib")
             SCALER = joblib.load("scaler.joblib")
+            logger.info("Scaler loaded successfully")
+            logger.info(f"Memory usage after loading scaler: {process.memory_info().rss / (1024 * 1024):.2f} MB")
+            
+            # Load feature columns
+            logger.info("Loading feature_columns.joblib")
             FEATURE_COLUMNS = joblib.load("feature_columns.joblib")
+            logger.info("Feature columns loaded successfully")
+            logger.info(f"Memory usage after loading feature columns: {process.memory_info().rss / (1024 * 1024):.2f} MB")
+            
             logger.info("Successfully loaded model, scaler, and feature columns")
         except Exception as e:
             logger.error(f"Error loading model, scaler, or feature columns: {str(e)}")
             raise
 
+def load_model_and_scaler_with_timeout(timeout=60):
+    with concurrent.futures.ThreadPoolExecutor() as executor:
+        future = executor.submit(load_model_and_scaler)
+        try:
+            future.result(timeout=timeout)
+        except concurrent.futures.TimeoutError:
+            logger.error(f"Loading model, scaler, and feature columns timed out after {timeout} seconds")
+            raise TimeoutError("Model loading timed out")
+        
+
+
+def check_joblib_files():
+    files_to_check = ["model.joblib", "scaler.joblib", "feature_columns.joblib"]
+    for file in files_to_check:
+        if os.path.exists(file):
+            size = os.path.getsize(file) / (1024 * 1024)  # Size in MB
+            permissions = oct(os.stat(file).st_mode)[-3:]
+            logger.info(f"File {file}: Size = {size:.2f} MB, Permissions = {permissions}")
+        else:
+            logger.error(f"File {file} does not exist")
 
 def predict_precipitation(
     sw_lon: float,

@@ -6,18 +6,28 @@ from routes import predictions
 from db.config import get_db_connection, init_db
 from db.models import User
 from typing import Annotated, Optional
-from ml import predict_precipitation, train_model
+from ml import (
+    check_joblib_files,
+    load_model_and_scaler_with_timeout,
+    predict_precipitation,
+    train_model,
+)
 from utils import get_buffered_bounding_box
 import logging
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    print("---app starting---")
-    init_db()
-    train_model()
+    logger.info("Starting up the application")
+    check_joblib_files()
+    try:
+        load_model_and_scaler_with_timeout(timeout=120)  # 2 minutes timeout
+    except TimeoutError:
+        logger.error("Application startup failed due to model loading timeout")
+        # You might want to exit the application here or take other appropriate action
+    except Exception as e:
+        logger.error(f"Error during startup: {str(e)}")
     yield
-    print("---app closing---")
 
 
 app = FastAPI(lifespan=lifespan)
