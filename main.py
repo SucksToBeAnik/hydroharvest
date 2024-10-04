@@ -78,38 +78,38 @@ async def get_users(db: Annotated[Session, Depends(get_db_connection)]):
         )
 
 
-@app.post("/precipitation")
-async def get_user_location_precipitation(
-    latitude: float, longitude: float, radius: Optional[float] = None
-):
-    try:
-        # Step 1: Get the buffered bounding box coordinates
-        radius = radius or 1.0
-        logger.info(
-            f"Calculating bounding box for lat:{latitude}, lon:{longitude}, radius:{radius}"
-        )
+# @app.post("/precipitation")
+# async def get_user_location_precipitation(
+#     latitude: float, longitude: float, radius: Optional[float] = None
+# ):
+#     try:
+#         # Step 1: Get the buffered bounding box coordinates
+#         radius = radius or 1.0
+#         logger.info(
+#             f"Calculating bounding box for lat:{latitude}, lon:{longitude}, radius:{radius}"
+#         )
 
-        coordinates = get_buffered_bounding_box(
-            lat=latitude, lon=longitude, buffer_km=radius
-        )
+#         coordinates = get_buffered_bounding_box(
+#             lat=latitude, lon=longitude, buffer_km=radius
+#         )
 
-        logger.info(f"Calculated coordinates: {coordinates}")
+#         logger.info(f"Calculated coordinates: {coordinates}")
 
-        # Step 2: Call the predict_precipitation function with the extracted coordinates
-        prediction = predict_precipitation(
-            sw_lon=coordinates["sw_lon"],
-            sw_lat=coordinates["sw_lat"],
-            ne_lon=coordinates["ne_lon"],
-            ne_lat=coordinates["ne_lat"],
-            nw_lon=coordinates["nw_lon"],
-            nw_lat=coordinates["nw_lat"],
-            se_lon=coordinates["se_lon"],
-            se_lat=coordinates["se_lat"],
-        )
+#         # Step 2: Call the predict_precipitation function with the extracted coordinates
+#         prediction = predict_precipitation(
+#             sw_lon=coordinates["sw_lon"],
+#             sw_lat=coordinates["sw_lat"],
+#             ne_lon=coordinates["ne_lon"],
+#             ne_lat=coordinates["ne_lat"],
+#             nw_lon=coordinates["nw_lon"],
+#             nw_lat=coordinates["nw_lat"],
+#             se_lon=coordinates["se_lon"],
+#             se_lat=coordinates["se_lat"],
+#         )
 
-        logger.info(f"Prediction result: {prediction}")
+#         logger.info(f"Prediction result: {prediction}")
 
-        return prediction
-    except Exception as e:
-        logger.error(f"Error in precipitation prediction: {str(e)}")
-        raise HTTPException(status_code=500, detail=f"Internal server error: {str(e)}")
+#         return prediction
+#     except Exception as e:
+#         logger.error(f"Error in precipitation prediction: {str(e)}")
+#         raise HTTPException(status_code=500, detail=f"Internal server error: {str(e)}")
