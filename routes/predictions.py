@@ -36,3 +36,38 @@ async def get_user_location_precipitation(
         return prediction
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Internal server error: {str(e)}")
+
+
+@router.post("/precipitation/yearly")
+async def get_user_location_precipitation_for_a_year(
+    year: int, latitude: float, longitude: float, radius: Optional[float] = None
+):
+    # Step 1: Get the buffered bounding box coordinates
+    try:
+        # Step 1: Get the buffered bounding box coordinates
+        radius = radius or 1.0
+
+        coordinates = get_buffered_bounding_box(
+            lat=latitude, lon=longitude, buffer_km=radius
+        )
+
+        predictions = []
+        for i in range(12):
+            # Step 2: Call the predict_precipitation function with the extracted coordinates
+            prediction = predict_precipitation(
+                year=year,
+                month=(i + 1),
+                sw_lon=coordinates["sw_lon"],
+                sw_lat=coordinates["sw_lat"],
+                ne_lon=coordinates["ne_lon"],
+                ne_lat=coordinates["ne_lat"],
+                nw_lon=coordinates["nw_lon"],
+                nw_lat=coordinates["nw_lat"],
+                se_lon=coordinates["se_lon"],
+                se_lat=coordinates["se_lat"],
+            )
+            predictions.append(prediction)
+
+        return predictions
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Internal server error: {str(e)}")
