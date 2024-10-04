@@ -103,4 +103,4 @@ async def get_user_location_precipitation(
     )
 
     # Step 4: Return the predicted precipitation (or whatever your function returns)
-    return prediction
+    return 'hi'
