@@ -20,6 +20,7 @@ import logging
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     logger.info("----Starting up the application----")
+    train_model()
     check_joblib_files()
     load_model_and_scaler()
     check_joblib_files()
