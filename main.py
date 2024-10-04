@@ -8,6 +8,7 @@ from db.models import User
 from typing import Annotated, Optional
 from ml import (
     check_joblib_files,
+    load_model_and_scaler,
     load_model_and_scaler_with_timeout,
     predict_precipitation,
     train_model,
@@ -18,15 +19,10 @@ import logging
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    logger.info("Starting up the application")
+    logger.info("----Starting up the application----")
     check_joblib_files()
-    try:
-        load_model_and_scaler_with_timeout(timeout=120)  # 2 minutes timeout
-    except TimeoutError:
-        logger.error("Application startup failed due to model loading timeout")
-        # You might want to exit the application here or take other appropriate action
-    except Exception as e:
-        logger.error(f"Error during startup: {str(e)}")
+    load_model_and_scaler()
+    check_joblib_files()
     yield
 
 
