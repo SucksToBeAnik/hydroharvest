@@ -75,10 +75,13 @@ async def get_user_location_precipitation(
 ):
     # Step 1: Get the buffered bounding box coordinates
     radius = radius or 1.0
+    print("I am here")
 
     coordinates = get_buffered_bounding_box(
         lat=latitude, lon=longitude, buffer_km=radius
     )
+
+    print("----",coordinates)
 
     # Step 2: Extract the coordinates from the dictionary
     ne_lat = coordinates.get("ne_lat")
@@ -101,6 +104,8 @@ async def get_user_location_precipitation(
         se_lat=se_lat,
         se_lon=se_lon,
     )
+
+    print("----predicted",prediction)
 
     # Step 4: Return the predicted precipitation (or whatever your function returns)
     return 'hi'
