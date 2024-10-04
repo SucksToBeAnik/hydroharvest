@@ -51,10 +51,10 @@ def get_buffered_bounding_box(lat: float, lon: float, buffer_km: float) -> Bound
     )
 
 
-# Example usage
-lat = 20.7128  # Latitude of the point (e.g., New York City)
-lon = -74.0060  # Longitude of the point
-buffer_km = 1  # Buffer in kilometers
+# # Example usage
+# lat = 20.7128  # Latitude of the point (e.g., New York City)
+# lon = -74.0060  # Longitude of the point
+# buffer_km = 1  # Buffer in kilometers
 
-bbox: BoundingBox = get_buffered_bounding_box(lat, lon, buffer_km)
-print(bbox)
+# bbox: BoundingBox = get_buffered_bounding_box(lat, lon, buffer_km)
+# print(bbox)
